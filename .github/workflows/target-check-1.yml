@@ -1,0 +1,17 @@
+name: target-check-1
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: none
+  issues: read
+  pull-requests: write
+
+jobs:
+  testing-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: execute
+        run: |
+          echo hello world
