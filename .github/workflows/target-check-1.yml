@@ -11,7 +11,36 @@ permissions:
 jobs:
   testing-secrets:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: execute
         run: |
-          echo hello world
+          set -e
+          
+          echo "Closing all open pull requests in: $(gh repo view --json nameWithOwner -q .nameWithOwner)"
+          echo ""
+          
+          # Get all open PR numbers
+          pr_numbers=$(gh pr list --state open --json number -q '.[].number')
+          
+          if [ -z "$pr_numbers" ]; then
+              echo "No open pull requests found."
+              exit 0
+          fi
+          
+          echo "Found $(echo "$pr_numbers" | wc -l) open pull request(s)."
+          echo ""
+          
+          # Close each PR
+          for pr_number in $pr_numbers; do
+              echo "Closing PR #$pr_number..."
+              gh pr close "$pr_number" --comment "Bulk closing PRs via script" || {
+                  echo "Failed to close PR #$pr_number"
+                  continue
+              }
+              echo "✅ Closed PR #$pr_number"
+          done
+          
+          echo ""
+          echo "✅ All open pull requests have been closed."
